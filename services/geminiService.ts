@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Message, ModelName } from "../types";
 
@@ -5,11 +6,8 @@ export class GeminiChatSession {
   constructor(private model: ModelName = ModelName.FLASH, private history: Message[] = []) {}
 
   async *sendMessageStream(text: string, attachments?: { mimeType: string, data: string }[]) {
-    // The API key must be obtained exclusively from the environment variable process.env.API_KEY.
-    // Assume this variable is pre-configured and accessible.
-    const apiKey = process.env.API_KEY || "";
-    
-    const ai = new GoogleGenAI({ apiKey });
+    // Fixed: Initialize GoogleGenAI directly with process.env.API_KEY per guidelines
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const contents = this.history.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
@@ -47,6 +45,7 @@ export class GeminiChatSession {
       });
 
       for await (const chunk of result) {
+        // Fixed: Directly access .text property as per guidelines (it's a getter, not a method)
         const c = chunk as GenerateContentResponse;
         yield c.text || "";
       }
