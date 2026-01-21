@@ -5,14 +5,10 @@ export class GeminiChatSession {
   constructor(private model: ModelName = ModelName.FLASH, private history: Message[] = []) {}
 
   async *sendMessageStream(text: string, attachments?: { mimeType: string, data: string }[]) {
-    // API key is required from the environment
-    const apiKey = process.env.API_KEY;
+    // The API key must be obtained exclusively from the environment variable process.env.API_KEY.
+    // Assume this variable is pre-configured and accessible.
+    const apiKey = process.env.API_KEY || "";
     
-    if (!apiKey) {
-      // Signal to the UI that we need to prompt for a key selection
-      throw new Error("FREE_KEY_MISSING");
-    }
-
     const ai = new GoogleGenAI({ apiKey });
 
     const contents = this.history.map(msg => ({
@@ -46,7 +42,7 @@ export class GeminiChatSession {
         model: this.model,
         contents,
         config: {
-          systemInstruction: "You are WinterAI, a helpful and efficient free assistant. Keep responses clear and concise.",
+          systemInstruction: "You are WinterAI, a helpful, precise, and efficient free assistant. Keep responses clear, professional, and use Markdown for all formatting.",
         },
       });
 
@@ -55,8 +51,12 @@ export class GeminiChatSession {
         yield c.text || "";
       }
     } catch (error: any) {
-      console.error("Free Engine Error:", error);
-      throw new Error(error.message || "Connection interrupted.");
+      console.error("Neural Interface Error:", error);
+      // If the error indicates a missing key at the SDK level, we pass a clear message.
+      if (error.message?.includes("API_KEY_INVALID") || error.message?.includes("not found")) {
+        throw new Error("The API key is missing or invalid in this deployment. Please verify your environment configuration.");
+      }
+      throw new Error(error.message || "An unexpected interruption occurred in the neural stream.");
     }
   }
 }
