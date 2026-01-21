@@ -1,8 +1,24 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Message, Attachment, ModelName } from './types';
 import { GeminiChatSession } from './services/geminiService';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
+
+/**
+ * Interface representing the AIStudio global object for API key management.
+ * Defining it here allows merging with potential existing global declarations.
+ */
+interface AIStudio {
+  hasSelectedApiKey: () => Promise<boolean>;
+  openSelectKey: () => Promise<void>;
+}
+
+declare global {
+  interface Window {
+    aistudio: AIStudio;
+  }
+}
 
 const STORAGE_KEYS = {
   MESSAGES: 'winterai_v1_messages',
@@ -10,6 +26,7 @@ const STORAGE_KEYS = {
 };
 
 const App: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [messages, setMessages] = useState<Message[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.MESSAGES);
@@ -27,12 +44,34 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const chatSessionRef = useRef<GeminiChatSession | null>(null);
-
+  
+  // Check auth status on mount
   useEffect(() => {
-    const history = messages.filter(m => !m.isStreaming);
-    chatSessionRef.current = new GeminiChatSession(modelName, history);
-  }, [modelName]);
+    const checkAuth = async () => {
+      // If process.env.API_KEY is already set, we might be in a dev/env-configured mode
+      if (process.env.API_KEY && process.env.API_KEY !== '') {
+        setIsAuthenticated(true);
+        return;
+      }
+
+      if (window.aistudio) {
+        const hasKey = await window.aistudio.hasSelectedApiKey();
+        setIsAuthenticated(hasKey);
+      } else {
+        // Fallback for non-aistudio environments
+        setIsAuthenticated(true);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const handleAuth = async () => {
+    if (window.aistudio) {
+      await window.aistudio.openSelectKey();
+      // Assume success as per instructions to mitigate race conditions
+      setIsAuthenticated(true);
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messages));
@@ -49,8 +88,6 @@ const App: React.FC = () => {
   }, [modelName]);
 
   const handleSend = async (text: string, attachments: Attachment[]) => {
-    if (!chatSessionRef.current) return;
-
     const userMsg: Message = {
       id: `u-${Date.now()}`,
       role: 'user',
@@ -74,8 +111,12 @@ const App: React.FC = () => {
     setMessages(prev => [...prev, initialAssistantMsg]);
 
     try {
+      // Re-create session with full history to maintain context
+      const history = [...messages, userMsg].filter(m => !m.isStreaming);
+      const chatSession = new GeminiChatSession(modelName, history);
+      
       let accumulatedContent = '';
-      const stream = chatSessionRef.current.sendMessageStream(
+      const stream = chatSession.sendMessageStream(
         text, 
         attachments.map(a => ({ mimeType: a.mimeType, data: a.data }))
       );
@@ -91,10 +132,13 @@ const App: React.FC = () => {
         msg.id === assistantId ? { ...msg, isStreaming: false } : msg
       ));
 
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message === "AUTH_REQUIRED") {
+        setIsAuthenticated(false);
+      }
       setMessages(prev => prev.map(msg => 
         msg.id === assistantId 
-          ? { ...msg, content: "Neural link interrupted. Please verify your connection status.", isStreaming: false } 
+          ? { ...msg, content: "Neural link interrupted. Please verify your authentication status.", isStreaming: false } 
           : msg
       ));
     } finally {
@@ -106,10 +150,46 @@ const App: React.FC = () => {
     if (confirm('Erase all local neural cache?')) {
       setMessages([]);
       localStorage.removeItem(STORAGE_KEYS.MESSAGES);
-      chatSessionRef.current = new GeminiChatSession(modelName, []);
       setIsSidebarOpen(false);
     }
   };
+
+  // Loading or Auth Screen
+  if (isAuthenticated === null) {
+    return <div className="h-screen w-full bg-slate-950 flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-sky-500/20 border-t-sky-500 rounded-full animate-spin"></div>
+    </div>;
+  }
+
+  if (isAuthenticated === false) {
+    return (
+      <div className="h-screen w-full bg-slate-950 flex items-center justify-center p-6 text-center">
+        <div className="max-w-md animate-winter-in">
+          <div className="w-20 h-20 bg-slate-900 border border-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-400"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h1 className="text-3xl font-black frost-text mb-4 uppercase tracking-tighter">Authentication Required</h1>
+          <p className="text-slate-400 mb-8 leading-relaxed">
+            WinterAI requires a secure neural uplink. Please connect using a paid API key from a billing-enabled project.
+          </p>
+          <button 
+            onClick={handleAuth}
+            className="w-full py-4 bg-sky-600 hover:bg-sky-500 text-white font-black rounded-2xl shadow-[0_0_20px_rgba(14,165,233,0.3)] transition-all active:scale-95 mb-4"
+          >
+            ESTABLISH SECURE LINK
+          </button>
+          <a 
+            href="https://ai.google.dev/gemini-api/docs/billing" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-xs text-sky-500/50 hover:text-sky-400 font-bold uppercase tracking-widest transition-colors"
+          >
+            Billing Documentation
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-winter-950">
