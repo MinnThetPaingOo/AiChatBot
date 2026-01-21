@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Message, ModelName } from "../types";
 
@@ -6,9 +5,14 @@ export class GeminiChatSession {
   constructor(private model: ModelName = ModelName.FLASH, private history: Message[] = []) {}
 
   async *sendMessageStream(text: string, attachments?: { mimeType: string, data: string }[]) {
-    // Create instance right before call to ensure we use the most up-to-date API key
+    const apiKey = process.env.API_KEY;
+    
+    if (!apiKey) {
+      throw new Error("AUTH_REQUIRED");
+    }
+
     // Always use process.env.API_KEY directly for SDK initialization
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey });
 
     const geminiHistory = this.history.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
@@ -50,11 +54,16 @@ STRICT PROTOCOLS:
       }
     } catch (error: any) {
       console.error("WinterAI Kernel Panic:", error);
-      // Handle the case where the entity (key) is not found
-      if (error.message?.includes("Requested entity was not found")) {
+      
+      const errorMsg = error.message || String(error);
+      
+      // Mandatory check: "If the request fails with an error message containing 'Requested entity was not found.', 
+      // reset the key selection state and prompt the user to select a key again via openSelectKey()."
+      if (errorMsg.includes("Requested entity was not found") || errorMsg.includes("API_KEY_INVALID")) {
         throw new Error("AUTH_REQUIRED");
       }
-      throw error;
+      
+      throw new Error(errorMsg);
     }
   }
 }
