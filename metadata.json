@@ -1,6 +1,6 @@
 {
-  "name": "Nexus",
-  "description": "A high-performance, modern AI chat interface featuring streaming responses, image analysis, and advanced reasoning.",
+  "name": "WinterAI",
+  "description": "A crisp, high-performance AI interface featuring streaming responses, image analysis, and advanced reasoning.",
   "requestFramePermissions": [
     "camera"
   ]

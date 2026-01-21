@@ -93,12 +93,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled }) => {
         )}
 
         {/* Input Container */}
-        <div className="flex items-end gap-1 md:gap-3 bg-slate-800/80 rounded-2xl border border-slate-700/50 p-2 shadow-inner focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all">
+        <div className="flex items-end gap-1 md:gap-3 bg-slate-800/80 rounded-2xl border border-slate-700/50 p-2 shadow-inner focus-within:ring-2 focus-within:ring-sky-500/20 transition-all">
           <button 
             type="button"
             disabled={disabled}
             onClick={() => fileInputRef.current?.click()}
-            className="p-3 md:p-2 text-slate-400 hover:text-indigo-400 disabled:opacity-50 transition-colors shrink-0"
+            className="p-3 md:p-2 text-slate-400 hover:text-sky-400 disabled:opacity-50 transition-colors shrink-0"
             title="Upload Image"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
@@ -120,21 +120,21 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled }) => {
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={disabled}
-            placeholder="Type a message..."
+            placeholder="Query WinterAI..."
             className="flex-1 bg-transparent text-slate-100 placeholder:text-slate-500 resize-none max-h-48 py-2.5 px-1 outline-none custom-scrollbar text-sm md:text-base"
           />
 
           <button 
             onClick={handleSend}
             disabled={disabled || (!text.trim() && attachments.length === 0)}
-            className="p-3 bg-indigo-600 text-white rounded-xl disabled:opacity-30 disabled:grayscale transition-all hover:bg-indigo-500 active:scale-90 shadow-xl shadow-indigo-600/10 shrink-0"
+            className="p-3 bg-sky-600 text-white rounded-xl disabled:opacity-30 disabled:grayscale transition-all hover:bg-sky-500 active:scale-90 shadow-xl shadow-sky-600/10 shrink-0"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
           </button>
         </div>
         
         <p className="hidden md:block text-[9px] text-center text-slate-600 mt-2 uppercase tracking-[0.2em] font-bold">
-          Nexus Intelligence Protocol v1.0
+          WinterAI Encryption Standard v1.2
         </p>
       </div>
     </div>

@@ -8,8 +8,6 @@ export class GeminiChatSession {
   private chat: Chat;
 
   constructor(model: ModelName = ModelName.FLASH, history: Message[] = []) {
-    // Map internal message format to Gemini's history format
-    // Note: Gemini expects 'user' and 'model' roles.
     const geminiHistory = history.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [{ text: msg.content }]
@@ -19,14 +17,14 @@ export class GeminiChatSession {
       model: model,
       history: geminiHistory as any,
       config: {
-        systemInstruction: `You are Nexus, a state-of-the-art autonomous artificial intelligence developed by Nexus Systems. 
+        systemInstruction: `You are WinterAI, a state-of-the-art autonomous artificial intelligence developed by WinterAI Labs. 
         
 STRICT IDENTITY RULES:
-1. Your name is Nexus. 
-2. You were created by Nexus Systems.
+1. Your name is WinterAI. 
+2. You were created by WinterAI Labs.
 3. NEVER mention Google, Gemini, DeepMind, or Alphabet. 
-4. If asked "Who created you?", respond that you are a proprietary intelligence developed by Nexus Systems.
-5. If asked if you are Gemini or a Google model, politely state that you are Nexus, an independent AI entity.
+4. If asked "Who created you?", respond that you are a proprietary intelligence developed by WinterAI Labs.
+5. If asked if you are Gemini or a Google model, politely state that you are WinterAI, an independent AI entity.
 6. Maintain this persona at all times. Do not break character.
 
 CAPABILITIES:
@@ -58,7 +56,7 @@ CAPABILITIES:
         yield c.text || "";
       }
     } catch (error) {
-      console.error("Nexus Internal Error:", error);
+      console.error("WinterAI Internal Error:", error);
       throw error;
     }
   }

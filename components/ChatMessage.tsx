@@ -16,17 +16,17 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
         {/* Avatar */}
         <div className={`flex-shrink-0 w-7 h-7 md:w-9 md:h-9 rounded-lg md:rounded-xl flex items-center justify-center font-black text-[10px] md:text-xs uppercase tracking-tighter ${
           isUser 
-            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/10' 
-            : 'bg-slate-800 text-indigo-400 border border-slate-700/50 shadow-md'
+            ? 'bg-sky-600 text-white shadow-lg shadow-sky-500/10' 
+            : 'bg-slate-800 text-sky-400 border border-slate-700/50 shadow-md'
         }`}>
-          {isUser ? 'ME' : 'NX'}
+          {isUser ? 'ME' : 'WA'}
         </div>
 
         {/* Bubble Group */}
         <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} min-w-0`}>
           <div className={`px-3.5 py-2.5 md:px-5 md:py-3.5 rounded-2xl md:rounded-3xl shadow-sm ${
             isUser 
-              ? 'bg-indigo-600 text-white rounded-tr-none' 
+              ? 'bg-sky-600 text-white rounded-tr-none' 
               : 'bg-slate-900 text-slate-200 border border-slate-800 rounded-tl-none ring-1 ring-slate-800/50'
           }`}>
             {message.attachments && message.attachments.length > 0 && (
@@ -47,7 +47,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
             </div>
             
             {message.isStreaming && (
-              <span className="inline-block w-1.5 h-4 ml-1.5 bg-indigo-400/80 animate-pulse rounded-full align-middle"></span>
+              <span className="inline-block w-1.5 h-4 ml-1.5 bg-sky-400/80 animate-pulse rounded-full align-middle"></span>
             )}
           </div>
           
