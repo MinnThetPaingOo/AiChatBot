@@ -5,28 +5,12 @@ import { GeminiChatSession } from './services/geminiService';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
 
-/**
- * Interface representing the AIStudio global object for API key management.
- */
-interface AIStudio {
-  hasSelectedApiKey: () => Promise<boolean>;
-  openSelectKey: () => Promise<void>;
-}
-
-declare global {
-  interface Window {
-    // Adding optional modifier to match the environment's internal definition and resolve modifier conflicts
-    aistudio?: AIStudio;
-  }
-}
-
 const STORAGE_KEYS = {
   MESSAGES: 'winterai_v1_messages',
   MODEL: 'winterai_v1_model'
 };
 
 const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [messages, setMessages] = useState<Message[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.MESSAGES);
@@ -45,38 +29,7 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   
-  // Check auth status on mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      if (process.env.API_KEY && process.env.API_KEY !== '') {
-        setIsAuthenticated(true);
-        return;
-      }
-
-      // Safeguard against missing aistudio and use optional chaining
-      if (window.aistudio) {
-        try {
-          const hasKey = await window.aistudio.hasSelectedApiKey();
-          setIsAuthenticated(hasKey);
-        } catch {
-          setIsAuthenticated(false);
-        }
-      } else {
-        // Assume true if tool is not present, though usually managed externally
-        setIsAuthenticated(true);
-      }
-    };
-    checkAuth();
-  }, []);
-
-  const handleAuth = async () => {
-    if (window.aistudio) {
-      await window.aistudio.openSelectKey();
-      // Instructions: assume success immediately after triggering openSelectKey to handle potential race condition
-      setIsAuthenticated(true);
-    }
-  };
-
+  // Persist settings and handle auto-scroll
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messages));
     if (scrollRef.current) {
@@ -136,17 +89,13 @@ const App: React.FC = () => {
       ));
 
     } catch (error: any) {
-      console.error("Chat Execution Error:", error);
-      
-      if (error.message === "AUTH_REQUIRED") {
-        setIsAuthenticated(false);
-      }
+      console.error("Session Error:", error);
       
       setMessages(prev => prev.map(msg => 
         msg.id === assistantId 
           ? { 
               ...msg, 
-              content: `Neural connection failure: ${error.message || "Unknown error"}. Please verify your uplink status.`, 
+              content: `Error: ${error.message || "Failed to connect to assistant"}. Please check your connection.`, 
               isStreaming: false 
             } 
           : msg
@@ -157,52 +106,12 @@ const App: React.FC = () => {
   };
 
   const clearChat = () => {
-    if (confirm('Erase all local neural cache?')) {
+    if (confirm('Erase current session memory?')) {
       setMessages([]);
       localStorage.removeItem(STORAGE_KEYS.MESSAGES);
       setIsSidebarOpen(false);
     }
   };
-
-  if (isAuthenticated === null) {
-    return (
-      <div className="h-screen w-full bg-slate-950 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-sky-500/20 border-t-sky-500 rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  if (isAuthenticated === false) {
-    return (
-      <div className="h-screen w-full bg-slate-950 flex items-center justify-center p-6 text-center">
-        <div className="max-w-md animate-winter-in">
-          <div className="w-20 h-20 bg-slate-900 border border-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
-            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky-400">
-              <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-          </div>
-          <h1 className="text-3xl font-black frost-text mb-4 uppercase tracking-tighter">Neural Link Required</h1>
-          <p className="text-slate-400 mb-8 leading-relaxed">
-            WinterAI requires a secure neural uplink. Please connect using a paid API key from a billing-enabled project.
-          </p>
-          <button 
-            onClick={handleAuth}
-            className="w-full py-4 bg-sky-600 hover:bg-sky-500 text-white font-black rounded-2xl shadow-[0_0_20px_rgba(14,165,233,0.3)] transition-all active:scale-95 mb-4"
-          >
-            ESTABLISH SECURE LINK
-          </button>
-          <a 
-            href="https://ai.google.dev/gemini-api/docs/billing" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-xs text-sky-500/50 hover:text-sky-400 font-bold uppercase tracking-widest transition-colors"
-          >
-            Billing Documentation
-          </a>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-winter-950">
@@ -228,21 +137,21 @@ const App: React.FC = () => {
             </div>
             <div>
               <h2 className="text-xl font-bold tracking-tight frost-text">WinterAI</h2>
-              <p className="text-xs text-blue-400 font-bold uppercase tracking-widest">v1.2.0 Stable</p>
+              <p className="text-xs text-blue-400 font-bold uppercase tracking-widest">Active Assistant</p>
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2 space-y-1">
-            <div className="px-3 py-2 text-xs text-gray-500 uppercase font-bold tracking-widest mb-2">Memory Nodes</div>
-            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-500 bg-opacity-10 border border-blue-500 border-opacity-20 text-sm font-semibold text-blue-200">
-              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-              Active Session
+            <div className="px-3 py-2 text-xs text-gray-500 uppercase font-bold tracking-widest mb-2">History</div>
+            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-500 bg-opacity-10 border border-blue-500 border-opacity-20 text-sm font-semibold text-blue-200 text-left">
+              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse inline-block mr-2"></span>
+              Current Chat
             </button>
           </div>
 
           <div className="mt-auto pt-6 border-t border-gray-800 space-y-4">
              <div>
-                <label className="text-xs text-gray-500 uppercase font-bold tracking-widest block mb-2 px-1">Neural Engine</label>
+                <label className="text-xs text-gray-500 uppercase font-bold tracking-widest block mb-2 px-1">Engine</label>
                 <select 
                   value={modelName}
                   onChange={(e) => setModelName(e.target.value as ModelName)}
@@ -259,7 +168,7 @@ const App: React.FC = () => {
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
               </svg>
-              Flush Cache
+              Clear Chat
             </button>
           </div>
         </div>
@@ -280,7 +189,7 @@ const App: React.FC = () => {
               <h1 className="text-sm font-bold uppercase tracking-widest frost-text lg:hidden">WinterAI</h1>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <span className="text-xs text-gray-500 font-bold uppercase tracking-widest hidden sm:inline">Secure Neural Link</span>
+                <span className="text-xs text-gray-500 font-bold uppercase tracking-widest hidden sm:inline">Online</span>
               </div>
             </div>
           </div>
@@ -305,11 +214,11 @@ const App: React.FC = () => {
                   </div>
                 </div>
                 <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 frost-text uppercase tracking-tight">Interface Online</h2>
-                <p className="text-gray-400 text-sm md:text-lg max-w-md mb-12 leading-relaxed">Secure environment ready for computation. WinterAI is online for high-order reasoning and analysis.</p>
+                <p className="text-gray-400 text-sm md:text-lg max-w-md mb-12 leading-relaxed">WinterAI is ready. How can I assist you today?</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
                   {[
-                    { label: "Engineering", q: "Refactor this logic for O(n) complexity." },
-                    { label: "Synthesis", q: "Analyze the security of RSA encryption." }
+                    { label: "Engineering", q: "Help me optimize some code." },
+                    { label: "Analysis", q: "Summarize a complex topic for me." }
                   ].map((item, i) => (
                     <button 
                       key={i}
