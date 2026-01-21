@@ -6,16 +6,15 @@ export class GeminiChatSession {
   constructor(private model: ModelName = ModelName.FLASH, private history: Message[] = []) {}
 
   async *sendMessageStream(text: string, attachments?: { mimeType: string, data: string }[]) {
-    // The API key must be obtained exclusively from the environment variable process.env.API_KEY.
+    // Obtain the API key exclusively from the environment
     const apiKey = process.env.API_KEY;
     
     if (!apiKey) {
-      throw new Error("Missing API Key. Ensure the environment is correctly configured.");
+      throw new Error("ENVIRONMENT_KEY_MISSING");
     }
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // Map existing history to Content objects as expected by generateContentStream
     const contents = this.history.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [
@@ -29,7 +28,6 @@ export class GeminiChatSession {
       ]
     }));
 
-    // Append the latest user message with its attachments
     contents.push({
       role: 'user',
       parts: [
@@ -48,9 +46,10 @@ export class GeminiChatSession {
         model: this.model,
         contents,
         config: {
-          systemInstruction: `You are WinterAI, a helpful assistant. Provide precise and clear responses. 
+          systemInstruction: `You are WinterAI, a precise and highly capable assistant.
+TONE: Professional, helpful, and concise.
 IDENTITY: WinterAI.
-FORMATTING: Use clean Markdown.`,
+FORMATTING: Always use clean Markdown for better readability.`,
         },
       });
 
@@ -59,8 +58,8 @@ FORMATTING: Use clean Markdown.`,
         yield c.text || "";
       }
     } catch (error: any) {
-      console.error("Assistant Error:", error);
-      throw new Error(error.message || String(error));
+      console.error("Kernel Error:", error);
+      throw new Error(error.message || "An unexpected interruption occurred in the neural stream.");
     }
   }
 }
