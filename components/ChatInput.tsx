@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Attachment } from '../types';
 
@@ -63,16 +62,16 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled }) => {
   }, [text]);
 
   return (
-    <div className="relative w-full border-t border-slate-800/40 glass-card px-4 pt-4 pb-8 md:pb-6">
+    <div className="relative w-full border-t border-gray-800 glass-card px-4 pt-4 pb-8 md:pb-6">
       <div className="max-w-4xl mx-auto">
         {attachments.length > 0 && (
-          <div className="flex flex-wrap gap-3 mb-4 animate-in slide-in-from-bottom-2">
+          <div className="flex flex-wrap gap-3 mb-4 animate-winter-in">
             {attachments.map((att, i) => (
               <div key={i} className="relative shrink-0">
-                <img src={att.url} alt="preview" className="w-16 h-16 md:w-24 md:h-24 object-cover rounded-2xl border border-slate-700 ring-2 ring-sky-500/20" />
+                <img src={att.url} alt="preview" className="w-16 h-16 md:w-24 md:h-24 object-cover rounded-2xl border border-gray-700 ring-2 ring-blue-500 ring-opacity-20" />
                 <button 
                   onClick={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-[10px] hover:bg-red-600 shadow-xl transition-transform hover:scale-110 active:scale-90"
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-[10px] hover:bg-red-600 shadow-xl transition-transform"
                 >
                   ✕
                 </button>
@@ -81,12 +80,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled }) => {
           </div>
         )}
 
-        <div className="flex items-end gap-2 md:gap-4 bg-slate-900/80 rounded-[1.5rem] md:rounded-[2rem] border border-slate-800/50 p-2 md:p-3 shadow-inner focus-within:ring-2 focus-within:ring-sky-500/20 transition-all">
+        <div className="flex items-end gap-2 md:gap-4 bg-gray-900 bg-opacity-80 rounded-3xl border border-gray-800 p-2 md:p-3 shadow-inner transition-all">
           <button 
             type="button"
             disabled={disabled}
             onClick={() => fileInputRef.current?.click()}
-            className="p-3 md:p-4 text-slate-500 hover:text-sky-400 disabled:opacity-30 transition-colors"
+            className="p-3 md:p-4 text-gray-500 hover:text-blue-400 disabled:opacity-30 transition-colors"
             title="Upload Pattern"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
@@ -102,24 +101,24 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled }) => {
             onKeyDown={handleKeyDown}
             disabled={disabled}
             placeholder="Initialize neural query..."
-            className="flex-1 bg-transparent text-slate-100 placeholder:text-slate-600 resize-none max-h-56 py-3 px-1 outline-none text-base font-medium"
+            className="flex-1 bg-transparent text-gray-100 placeholder-gray-600 resize-none max-h-56 py-3 px-1 outline-none text-base font-medium"
           />
 
           <button 
             onClick={handleSend}
             disabled={disabled || (!text.trim() && attachments.length === 0)}
-            className="p-4 bg-sky-500 text-white rounded-2xl md:rounded-3xl disabled:opacity-20 disabled:grayscale transition-all hover:bg-sky-400 active:scale-90 shadow-[0_0_20px_rgba(14,165,233,0.3)]"
+            className="p-4 bg-blue-500 text-white rounded-2xl md:rounded-3xl disabled:opacity-20 transition-all hover:bg-blue-400 active:scale-95 shadow-lg"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
           </button>
         </div>
         
-        <div className="mt-3 flex justify-center gap-6 px-4">
-           <div className="text-[8px] md:text-[9px] text-slate-700 uppercase font-black tracking-[0.3em]">
-             Quantum Encrypted Signal
+        <div className="mt-3 flex justify-center gap-6 px-4 opacity-30">
+           <div className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">
+             Neural Link Encrypted
            </div>
-           <div className="text-[8px] md:text-[9px] text-slate-700 uppercase font-black tracking-[0.3em]">
-             WinterAI Core v1.2
+           <div className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">
+             WinterAI Kernel 1.2
            </div>
         </div>
       </div>

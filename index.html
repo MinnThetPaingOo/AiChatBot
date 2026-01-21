@@ -1,45 +1,41 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>WinterAI | Intelligent Neural Interface</title>
-    <!-- Favicon embedded to prevent 404 resource errors -->
+    <!-- Favicon embedded as data URI to prevent 404 resource errors -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❄️</text></svg>">
-    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Production-ready static Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-              mono: ['JetBrains Mono', 'monospace'],
-            },
-            colors: {
-              winter: {
-                50: '#f0f9ff',
-                100: '#e0f2fe',
-                200: '#bae6fd',
-                300: '#7dd3fc',
-                400: '#38bdf8',
-                500: '#0ea5e9',
-                950: '#020617',
-              }
-            }
-          }
-        }
-      }
-    </script>
+    
     <style>
-      body {
-        background-color: #020617;
-        color: #f8fafc;
-        overflow: hidden;
+      :root {
+        --winter-950: #020617;
+        --winter-900: #0f172a;
+        --winter-800: #1e293b;
+        --sky-400: #38bdf8;
+        --sky-500: #0ea5e9;
+        --sky-600: #0284c7;
       }
+
+      body {
+        background-color: var(--winter-950);
+        color: #f8fafc;
+        font-family: 'Inter', sans-serif;
+        overflow: hidden;
+        margin: 0;
+      }
+
+      /* Custom Utilities */
+      .bg-winter-950 { background-color: var(--winter-950); }
+      .bg-winter-900 { background-color: var(--winter-900); }
+      
       .custom-scrollbar::-webkit-scrollbar {
         width: 5px;
       }
@@ -53,18 +49,40 @@
       .custom-scrollbar::-webkit-scrollbar-thumb:hover {
         background: rgba(56, 189, 248, 0.3);
       }
+
       .glass-card {
         background: rgba(15, 23, 42, 0.6);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(56, 189, 248, 0.1);
       }
+
       .frost-text {
         background: linear-gradient(to bottom right, #fff, #7dd3fc);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        color: #fff; /* Fallback */
+      }
+
+      /* Animations */
+      @keyframes winterFadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .animate-winter-in {
+        animation: winterFadeIn 0.5s ease-out forwards;
+      }
+
+      pre {
+        font-family: 'JetBrains Mono', monospace !important;
+      }
+
+      code {
+        font-family: 'JetBrains Mono', monospace !important;
       }
     </style>
+
     <script type="importmap">
     {
       "imports": {

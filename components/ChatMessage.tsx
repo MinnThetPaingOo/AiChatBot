@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Message } from '../types';
 import MarkdownRenderer from './MarkdownRenderer';
@@ -11,13 +10,13 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const isUser = message.role === 'user';
 
   return (
-    <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+    <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} animate-winter-in`}>
       <div className={`flex max-w-[95%] sm:max-w-[85%] md:max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'} gap-3 md:gap-4`}>
         {/* Avatar Plate */}
-        <div className={`flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center font-black text-[10px] md:text-xs tracking-tighter shadow-xl ${
+        <div className={`flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center font-bold text-xs tracking-tighter shadow-xl ${
           isUser 
-            ? 'bg-sky-600 text-white' 
-            : 'bg-slate-800 text-sky-400 border border-slate-700/50'
+            ? 'bg-blue-600 text-white' 
+            : 'bg-gray-800 text-blue-400 border border-gray-700'
         }`}>
           {isUser ? 'USR' : 'WAI'}
         </div>
@@ -26,8 +25,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
         <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} min-w-0`}>
           <div className={`px-4 py-3 md:px-6 md:py-4 rounded-3xl shadow-2xl transition-all ${
             isUser 
-              ? 'bg-sky-600 text-white rounded-tr-none' 
-              : 'bg-slate-900 text-slate-100 border border-slate-800 rounded-tl-none ring-1 ring-white/5'
+              ? 'bg-blue-600 text-white rounded-tr-none' 
+              : 'bg-gray-900 text-gray-100 border border-gray-800 rounded-tl-none'
           }`}>
             {message.attachments && message.attachments.length > 0 && (
               <div className="flex flex-wrap gap-3 mb-4">
@@ -36,31 +35,31 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
                     key={idx} 
                     src={att.url} 
                     alt="attachment" 
-                    className="max-h-60 md:max-h-96 w-auto rounded-2xl border border-white/10 hover:opacity-90 transition-opacity cursor-zoom-in"
+                    className="max-h-60 md:max-h-96 w-auto rounded-2xl border border-white border-opacity-10 hover:opacity-90 transition-opacity cursor-zoom-in"
                   />
                 ))}
               </div>
             )}
             
-            <div className="text-[15px] md:text-[16px] leading-relaxed font-medium">
+            <div className="text-sm md:text-base leading-relaxed font-medium">
               <MarkdownRenderer content={message.content} />
             </div>
             
             {message.isStreaming && (
               <div className="mt-2 flex gap-1 items-center">
-                <span className="w-1.5 h-1.5 bg-sky-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                <span className="w-1.5 h-1.5 bg-sky-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                <span className="w-1.5 h-1.5 bg-sky-400 rounded-full animate-bounce"></span>
+                <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></span>
+                <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
               </div>
             )}
           </div>
           
           <div className="flex items-center gap-2 mt-2 px-1">
-             <span className="text-[9px] text-slate-600 font-black uppercase tracking-widest tabular-nums">
+             <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest tabular-nums">
                 {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
              </span>
              {!isUser && !message.isStreaming && (
-               <span className="text-[9px] text-sky-500/50 font-black uppercase tracking-widest">Verified Signal</span>
+               <span className="text-[10px] text-blue-500 text-opacity-50 font-bold uppercase tracking-widest">Neural Link Verified</span>
              )}
           </div>
         </div>

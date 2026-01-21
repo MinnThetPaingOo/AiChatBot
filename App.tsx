@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Message, Attachment, ModelName } from './types';
 import { GeminiChatSession } from './services/geminiService';
@@ -30,13 +29,11 @@ const App: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const chatSessionRef = useRef<GeminiChatSession | null>(null);
 
-  // Sync session
   useEffect(() => {
     const history = messages.filter(m => !m.isStreaming);
     chatSessionRef.current = new GeminiChatSession(modelName, history);
   }, [modelName]);
 
-  // Persistence and Scroll
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messages));
     if (scrollRef.current) {
@@ -97,7 +94,7 @@ const App: React.FC = () => {
     } catch (error) {
       setMessages(prev => prev.map(msg => 
         msg.id === assistantId 
-          ? { ...msg, content: "Kernel link failure. Please check your network or API credentials.", isStreaming: false } 
+          ? { ...msg, content: "Neural link interrupted. Please verify your connection status.", isStreaming: false } 
           : msg
       ));
     } finally {
@@ -106,7 +103,7 @@ const App: React.FC = () => {
   };
 
   const clearChat = () => {
-    if (confirm('Erase current session memory?')) {
+    if (confirm('Erase all local neural cache?')) {
       setMessages([]);
       localStorage.removeItem(STORAGE_KEYS.MESSAGES);
       chatSessionRef.current = new GeminiChatSession(modelName, []);
@@ -115,50 +112,51 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-slate-950 font-sans selection:bg-sky-500/30">
+    <div className="flex h-screen w-full overflow-hidden bg-winter-950">
       {/* Mobile Drawer Backdrop */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-slate-950/80 z-40 lg:hidden backdrop-blur-md transition-opacity"
+          className="fixed inset-0 bg-black bg-opacity-80 z-40 lg:hidden"
+          style={{ backdropFilter: 'blur(8px)' }}
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* Navigation Drawer */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-50 w-72 glass-card border-r border-slate-800/50
+        fixed lg:static inset-y-0 left-0 z-50 w-72 glass-card border-r border-gray-800
         transform transition-all duration-300 ease-out
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="flex flex-col h-full p-6">
           <div className="flex items-center gap-3 mb-10 px-1">
-            <div className="w-10 h-10 bg-sky-500 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(14,165,233,0.4)]">
+            <div className="w-10 h-10 bg-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/><line x1="8" x2="8" y1="16" y2="16"/><line x1="12" x2="12" y1="18" y2="18"/><line x1="16" x2="16" y1="16" y2="16"/></svg>
             </div>
             <div>
-              <h2 className="text-xl font-black tracking-tight frost-text">WinterAI</h2>
-              <p className="text-[10px] text-sky-400 font-bold uppercase tracking-widest">v1.2.0 Stable</p>
+              <h2 className="text-xl font-bold tracking-tight frost-text">WinterAI</h2>
+              <p className="text-xs text-blue-400 font-bold uppercase tracking-widest">v1.2.0 Stable</p>
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2 space-y-1">
-            <div className="px-3 py-2 text-[10px] text-slate-500 uppercase font-black tracking-widest mb-2">Memory Nodes</div>
-            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sm font-semibold text-sky-200">
-              <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+            <div className="px-3 py-2 text-xs text-gray-500 uppercase font-bold tracking-widest mb-2">Memory Nodes</div>
+            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-blue-500 bg-opacity-10 border border-blue-500 border-opacity-20 text-sm font-semibold text-blue-200">
+              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
               Active Session
             </button>
             <div className="p-8 text-center opacity-30">
-              <p className="text-xs text-slate-400 italic">Historical data encrypted.</p>
+              <p className="text-xs text-gray-400 italic">Cache restricted.</p>
             </div>
           </div>
 
-          <div className="mt-auto pt-6 border-t border-slate-800/50 space-y-4">
+          <div className="mt-auto pt-6 border-t border-gray-800 space-y-4">
              <div>
-                <label className="text-[10px] text-slate-500 uppercase font-black tracking-widest block mb-2">Neural Engine</label>
+                <label className="text-xs text-gray-500 uppercase font-bold tracking-widest block mb-2 px-1">Neural Engine</label>
                 <select 
                   value={modelName}
                   onChange={(e) => setModelName(e.target.value as ModelName)}
-                  className="w-full bg-slate-900/50 text-slate-300 text-sm font-bold px-3 py-2.5 rounded-xl border border-slate-800 outline-none focus:border-sky-500 transition-all appearance-none cursor-pointer"
+                  className="w-full bg-gray-900 text-gray-300 text-sm font-bold px-3 py-2.5 rounded-xl border border-gray-800 outline-none focus:border-blue-500 transition-all cursor-pointer"
                 >
                   <option value={ModelName.FLASH}>Arctic Light (Fast)</option>
                   <option value={ModelName.PRO}>Glacier Ultra (Deep)</option>
@@ -166,7 +164,7 @@ const App: React.FC = () => {
              </div>
             <button 
               onClick={clearChat}
-              className="flex items-center justify-center gap-2 w-full px-4 py-3 text-sm font-bold text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl border border-transparent hover:border-red-400/20 transition-all"
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 text-sm font-bold text-gray-400 hover:text-red-400 hover:bg-red-400 hover:bg-opacity-10 rounded-xl transition-all"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
               Flush Cache
@@ -176,27 +174,27 @@ const App: React.FC = () => {
       </aside>
 
       {/* Main Terminal */}
-      <div className="flex-1 flex flex-col min-w-0 bg-slate-950 relative">
-        <header className="flex items-center justify-between px-6 py-4 border-b border-slate-800/40 glass-card z-30">
+      <div className="flex-1 flex flex-col min-w-0 bg-winter-950 relative">
+        <header className="flex items-center justify-between px-6 py-4 border-b border-gray-800 glass-card z-30">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsSidebarOpen(true)}
-              className="p-2 -ml-2 text-slate-400 hover:text-sky-400 lg:hidden transition-colors"
+              className="p-2 -ml-2 text-gray-400 hover:text-blue-400 lg:hidden transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
             </button>
             <div className="flex flex-col">
-              <h1 className="text-sm font-black uppercase tracking-widest frost-text lg:hidden">WinterAI</h1>
+              <h1 className="text-sm font-bold uppercase tracking-widest frost-text lg:hidden">WinterAI</h1>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest hidden sm:inline">Secure Link Optimized</span>
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <span className="text-xs text-gray-500 font-bold uppercase tracking-widest hidden sm:inline">Secure Neural Link</span>
               </div>
             </div>
           </div>
           
           <div className="flex items-center gap-3">
-            <div className="px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/30 text-[10px] text-sky-400 font-black uppercase tracking-widest">
-              {modelName === ModelName.FLASH ? 'Arctic-1.0' : 'Glacier-Pro'}
+            <div className="px-3 py-1 rounded-full bg-blue-500 bg-opacity-10 border border-blue-500 border-opacity-30 text-xs text-blue-400 font-bold uppercase tracking-widest">
+              {modelName === ModelName.FLASH ? 'Arctic' : 'Glacier'}
             </div>
           </div>
         </header>
@@ -207,15 +205,15 @@ const App: React.FC = () => {
         >
           <div className="max-w-4xl mx-auto p-6 md:p-12 min-h-full flex flex-col">
             {messages.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center py-20 animate-in fade-in zoom-in-95 duration-1000">
+              <div className="flex-1 flex flex-col items-center justify-center text-center py-20 animate-winter-in">
                 <div className="relative mb-8">
-                  <div className="absolute inset-0 bg-sky-500/20 blur-[60px] rounded-full animate-pulse"></div>
-                  <div className="relative w-24 h-24 bg-slate-900 border border-slate-800 rounded-[2rem] flex items-center justify-center shadow-2xl transition-all hover:scale-105">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-sky-400"><path d="M12 2v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="M2 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="M12 22v-4"/><path d="m19.07 19.07-2.83-2.83"/><path d="M22 12h-4"/><path d="m19.07 4.93-2.83 2.83"/></svg>
+                  <div className="absolute inset-0 bg-blue-500 bg-opacity-20 blur-3xl rounded-full"></div>
+                  <div className="relative w-24 h-24 bg-gray-900 border border-gray-800 rounded-3xl flex items-center justify-center shadow-2xl transition-all hover:scale-105">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400"><path d="M12 2v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="M2 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="M12 22v-4"/><path d="m19.07 19.07-2.83-2.83"/><path d="M22 12h-4"/><path d="m19.07 4.93-2.83 2.83"/></svg>
                   </div>
                 </div>
-                <h2 className="text-2xl md:text-4xl font-black text-white mb-4 frost-text uppercase tracking-tight">System Ready</h2>
-                <p className="text-slate-400 text-sm md:text-lg max-w-md mb-12 leading-relaxed">Neural pathways established. WinterAI is online for high-order logic, creative synthesis, and data visualization.</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 frost-text uppercase tracking-tight">Interface Online</h2>
+                <p className="text-gray-400 text-sm md:text-lg max-w-md mb-12 leading-relaxed">Secure environment ready for computation. WinterAI is online for high-order reasoning and analysis.</p>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
                   {[
@@ -225,10 +223,10 @@ const App: React.FC = () => {
                     <button 
                       key={i}
                       onClick={() => handleSend(item.q, [])}
-                      className="group p-5 bg-slate-900/40 border border-slate-800/60 rounded-2xl text-left hover:border-sky-500/40 hover:bg-slate-900/60 transition-all active:scale-[0.97]"
+                      className="group p-5 bg-gray-900 bg-opacity-40 border border-gray-800 rounded-2xl text-left hover:border-blue-500 hover:border-opacity-40 transition-all"
                     >
-                      <div className="text-sky-500 font-black text-[10px] mb-2 uppercase tracking-[0.2em]">{item.label}</div>
-                      <div className="text-slate-300 text-sm font-medium group-hover:text-white line-clamp-2 leading-snug">{item.q}</div>
+                      <div className="text-blue-500 font-bold text-xs mb-2 uppercase tracking-widest">{item.label}</div>
+                      <div className="text-gray-300 text-sm font-medium group-hover:text-white line-clamp-2 leading-snug">{item.q}</div>
                     </button>
                   ))}
                 </div>
