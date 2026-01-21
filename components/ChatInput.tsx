@@ -18,9 +18,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled }) => {
       onSend(text, attachments);
       setText('');
       setAttachments([]);
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-      }
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
     }
   };
 
@@ -36,17 +34,13 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled }) => {
     if (!files) return;
 
     const newAttachments: Attachment[] = [];
-
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (!file.type.startsWith('image/')) continue;
 
       const base64 = await new Promise<string>((resolve) => {
         const reader = new FileReader();
-        reader.onloadend = () => {
-          const result = reader.result as string;
-          resolve(result.split(',')[1]);
-        };
+        reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
         reader.readAsDataURL(file);
       });
 
@@ -61,29 +55,24 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled }) => {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const removeAttachment = (index: number) => {
-    setAttachments(prev => prev.filter((_, i) => i !== index));
-  };
-
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 180)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
     }
   }, [text]);
 
   return (
-    <div className="relative w-full bg-slate-900/60 backdrop-blur-2xl border-t border-slate-800 px-3 pt-3 pb-6 md:pb-5">
+    <div className="relative w-full border-t border-slate-800/40 glass-card px-4 pt-4 pb-8 md:pb-6">
       <div className="max-w-4xl mx-auto">
-        {/* Attachment Previews */}
         {attachments.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-3 px-1">
+          <div className="flex flex-wrap gap-3 mb-4 animate-in slide-in-from-bottom-2">
             {attachments.map((att, i) => (
-              <div key={i} className="relative group shrink-0">
-                <img src={att.url} alt="upload" className="w-14 h-14 md:w-20 md:h-20 object-cover rounded-xl border border-slate-700 shadow-lg" />
+              <div key={i} className="relative shrink-0">
+                <img src={att.url} alt="preview" className="w-16 h-16 md:w-24 md:h-24 object-cover rounded-2xl border border-slate-700 ring-2 ring-sky-500/20" />
                 <button 
-                  onClick={() => removeAttachment(i)}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-[10px] hover:bg-red-600 shadow-xl ring-2 ring-slate-900"
+                  onClick={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-[10px] hover:bg-red-600 shadow-xl transition-transform hover:scale-110 active:scale-90"
                 >
                   ✕
                 </button>
@@ -92,26 +81,18 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled }) => {
           </div>
         )}
 
-        {/* Input Container */}
-        <div className="flex items-end gap-1 md:gap-3 bg-slate-800/80 rounded-2xl border border-slate-700/50 p-2 shadow-inner focus-within:ring-2 focus-within:ring-sky-500/20 transition-all">
+        <div className="flex items-end gap-2 md:gap-4 bg-slate-900/80 rounded-[1.5rem] md:rounded-[2rem] border border-slate-800/50 p-2 md:p-3 shadow-inner focus-within:ring-2 focus-within:ring-sky-500/20 transition-all">
           <button 
             type="button"
             disabled={disabled}
             onClick={() => fileInputRef.current?.click()}
-            className="p-3 md:p-2 text-slate-400 hover:text-sky-400 disabled:opacity-50 transition-colors shrink-0"
-            title="Upload Image"
+            className="p-3 md:p-4 text-slate-500 hover:text-sky-400 disabled:opacity-30 transition-colors"
+            title="Upload Pattern"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
           </button>
           
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleFileChange} 
-            accept="image/*" 
-            multiple 
-            className="hidden" 
-          />
+          <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" multiple className="hidden" />
 
           <textarea
             ref={textareaRef}
@@ -120,22 +101,27 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled }) => {
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={disabled}
-            placeholder="Query WinterAI..."
-            className="flex-1 bg-transparent text-slate-100 placeholder:text-slate-500 resize-none max-h-48 py-2.5 px-1 outline-none custom-scrollbar text-sm md:text-base"
+            placeholder="Initialize neural query..."
+            className="flex-1 bg-transparent text-slate-100 placeholder:text-slate-600 resize-none max-h-56 py-3 px-1 outline-none text-base font-medium"
           />
 
           <button 
             onClick={handleSend}
             disabled={disabled || (!text.trim() && attachments.length === 0)}
-            className="p-3 bg-sky-600 text-white rounded-xl disabled:opacity-30 disabled:grayscale transition-all hover:bg-sky-500 active:scale-90 shadow-xl shadow-sky-600/10 shrink-0"
+            className="p-4 bg-sky-500 text-white rounded-2xl md:rounded-3xl disabled:opacity-20 disabled:grayscale transition-all hover:bg-sky-400 active:scale-90 shadow-[0_0_20px_rgba(14,165,233,0.3)]"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
           </button>
         </div>
         
-        <p className="hidden md:block text-[9px] text-center text-slate-600 mt-2 uppercase tracking-[0.2em] font-bold">
-          WinterAI Encryption Standard v1.2
-        </p>
+        <div className="mt-3 flex justify-center gap-6 px-4">
+           <div className="text-[8px] md:text-[9px] text-slate-700 uppercase font-black tracking-[0.3em]">
+             Quantum Encrypted Signal
+           </div>
+           <div className="text-[8px] md:text-[9px] text-slate-700 uppercase font-black tracking-[0.3em]">
+             WinterAI Core v1.2
+           </div>
+        </div>
       </div>
     </div>
   );

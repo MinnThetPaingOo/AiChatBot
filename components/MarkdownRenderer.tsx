@@ -12,29 +12,36 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
 
-    // Code blocks with horizontal scroll for mobile
+    // Block Code
     processed = processed.replace(/```([\s\S]*?)```/g, (match, code) => {
-      return `<div class="relative my-3"><pre class="bg-black/40 p-3 md:p-5 rounded-xl overflow-x-auto border border-slate-800 font-mono text-xs md:text-sm text-indigo-200 custom-scrollbar whitespace-pre"><code class="block w-max min-w-full">${code.trim()}</code></pre></div>`;
+      const trimmed = code.trim();
+      return `
+        <div class="relative group my-6 overflow-hidden">
+          <div class="absolute inset-0 bg-sky-500/5 blur-xl"></div>
+          <pre class="relative bg-slate-900/80 p-5 rounded-2xl overflow-x-auto border border-slate-800 font-mono text-[13px] leading-relaxed text-sky-100 custom-scrollbar whitespace-pre shadow-2xl">
+            <code class="block w-max min-w-full">${trimmed}</code>
+          </pre>
+        </div>
+      `;
     });
 
-    // Inline code
-    processed = processed.replace(/`([^`]+)`/g, '<code class="bg-slate-800/80 px-1.5 py-0.5 rounded text-indigo-300 font-mono text-[0.85em] border border-slate-700/30">$1</code>');
+    // Inline Code
+    processed = processed.replace(/`([^`]+)`/g, '<code class="bg-slate-800/80 px-1.5 py-0.5 rounded-lg text-sky-300 font-mono text-[0.85em] border border-slate-700/50">$1</code>');
 
-    // Bold
-    processed = processed.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
-
-    // Italic
-    processed = processed.replace(/\*([^*]+)\*/g, '<em class="italic text-slate-300">$1</em>');
+    // Bold/Italic
+    processed = processed.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-black text-white">$1</strong>');
+    processed = processed.replace(/\*([^*]+)\*/g, '<em class="italic text-sky-200/80">$1</em>');
 
     // Lists
-    processed = processed.replace(/^\s*[-*]\s+(.*)$/gm, '<li class="ml-4 md:ml-6 list-disc text-slate-300 mb-1 pl-1">$1</li>');
+    processed = processed.replace(/^\s*[-*]\s+(.*)$/gm, '<li class="ml-5 list-disc text-slate-300 mb-2 pl-2 marker:text-sky-500">$1</li>');
     
-    // Headers - scaled for mobile
-    processed = processed.replace(/^### (.*$)/gm, '<h3 class="text-base md:text-lg font-bold mt-4 mb-1 text-white">$1</h3>');
-    processed = processed.replace(/^## (.*$)/gm, '<h2 class="text-lg md:text-xl font-bold mt-5 mb-2 text-white border-b border-slate-800 pb-1">$1</h2>');
-    processed = processed.replace(/^# (.*$)/gm, '<h1 class="text-xl md:text-2xl font-black mt-6 mb-3 text-white">$1</h1>');
+    // Headers
+    processed = processed.replace(/^### (.*$)/gm, '<h3 class="text-lg font-black mt-6 mb-2 text-white uppercase tracking-tight">$1</h3>');
+    processed = processed.replace(/^## (.*$)/gm, '<h2 class="text-xl font-black mt-8 mb-4 text-white border-b border-slate-800/50 pb-2 tracking-tight">$1</h2>');
+    processed = processed.replace(/^# (.*$)/gm, '<h1 class="text-2xl font-black mt-10 mb-6 text-sky-50 tracking-tighter">$1</h1>');
 
-    // Line breaks
+    // Paragraph Breaks
+    processed = processed.replace(/\n\n/g, '<div class="mb-4"></div>');
     processed = processed.replace(/\n/g, '<br />');
 
     return processed;
@@ -42,7 +49,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
 
   return (
     <div 
-      className="prose prose-invert max-w-none break-words leading-relaxed selection:bg-indigo-500/30"
+      className="prose prose-invert max-w-none break-words leading-relaxed"
       dangerouslySetInnerHTML={{ __html: parseContent(content) }} 
     />
   );
