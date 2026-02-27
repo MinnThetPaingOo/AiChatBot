@@ -18,12 +18,12 @@ const App: React.FC = () => {
       return [];
     }
   });
-  
+
   const [isKeySelected, setIsKeySelected] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  
+
   // Check for API key on mount
   useEffect(() => {
     const checkKey = async () => {
@@ -85,45 +85,45 @@ const App: React.FC = () => {
     try {
       const history = [...messages, userMsg].filter(m => !m.isStreaming);
       const chatSession = new GeminiChatSession(ModelName.FLASH, history);
-      
+
       let accumulatedContent = '';
       const stream = chatSession.sendMessageStream(
-        text, 
+        text,
         attachments.map(a => ({ mimeType: a.mimeType, data: a.data }))
       );
 
       for await (const chunk of stream) {
         accumulatedContent += chunk;
-        setMessages(prev => prev.map(msg => 
+        setMessages(prev => prev.map(msg =>
           msg.id === assistantId ? { ...msg, content: accumulatedContent } : msg
         ));
       }
 
-      setMessages(prev => prev.map(msg => 
+      setMessages(prev => prev.map(msg =>
         msg.id === assistantId ? { ...msg, isStreaming: false } : msg
       ));
 
     } catch (error: any) {
       console.error("Neural Interface Error:", error);
-      
+
       let errorMsg = error.message || "An unexpected interruption occurred.";
-      
+
       // Fixed: Handle key-related errors including "Requested entity was not found" per guidelines
-      if (errorMsg.includes("API key must be set") || 
-          errorMsg.includes("ENVIRONMENT_KEY_MISSING") || 
-          errorMsg.includes("API_KEY_INVALID") || 
-          errorMsg.includes("Requested entity was not found")) {
+      if (errorMsg.includes("API key must be set") ||
+        errorMsg.includes("ENVIRONMENT_KEY_MISSING") ||
+        errorMsg.includes("API_KEY_INVALID") ||
+        errorMsg.includes("Requested entity was not found")) {
         setIsKeySelected(false);
         errorMsg = "Interface disconnected. Please re-link your API key using the button on the main screen.";
       }
 
-      setMessages(prev => prev.map(msg => 
-        msg.id === assistantId 
-          ? { 
-              ...msg, 
-              content: `**Interface Error**: ${errorMsg}`, 
-              isStreaming: false 
-            } 
+      setMessages(prev => prev.map(msg =>
+        msg.id === assistantId
+          ? {
+            ...msg,
+            content: `**Interface Error**: ${errorMsg}`,
+            isStreaming: false
+          }
           : msg
       ));
     } finally {
@@ -146,23 +146,23 @@ const App: React.FC = () => {
       <div className="h-screen w-full bg-winter-950 flex items-center justify-center p-6 overflow-hidden relative">
         {/* Background Frost Bloom */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/10 blur-[120px] rounded-full"></div>
-        
+
         <div className="relative z-10 max-w-xl w-full text-center animate-winter-in">
           <div className="w-24 h-24 bg-gray-900 border border-gray-800 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-2xl transition-transform hover:scale-110">
             <span className="text-5xl">❄️</span>
           </div>
-          
+
           <h1 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tighter">
             WinterAI <span className="frost-text">Free</span>
           </h1>
-          
+
           <p className="text-slate-400 text-lg md:text-xl mb-12 leading-relaxed">
-            Initialize your free neural interface to start exploring high-performance intelligence. 
+            Initialize your free neural interface to start exploring high-performance intelligence.
             Select an API key to establish a secure link.
           </p>
-          
+
           <div className="space-y-4">
-            <button 
+            <button
               onClick={handleConnect}
               className="w-full py-5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl transition-all active:scale-95 shadow-[0_0_40px_rgba(37,99,235,0.3)] text-lg uppercase tracking-widest"
             >
@@ -218,9 +218,9 @@ const App: React.FC = () => {
                 Arctic Flash 3.0
               </p>
             </div>
-            
-            <button 
-              onClick={() => { if(confirm('Clear neural history?')) setMessages([]); setIsSidebarOpen(false); }}
+
+            <button
+              onClick={() => { if (confirm('Clear neural history?')) { setMessages([]); setIsSidebarOpen(false); } }}
               className="w-full py-4 text-[10px] font-black text-gray-500 hover:text-red-400 transition-colors uppercase tracking-widest border border-gray-800/50 rounded-xl"
             >
               Clear Buffer
@@ -233,33 +233,33 @@ const App: React.FC = () => {
       <main className="flex-1 flex flex-col relative h-full">
         {/* Mobile Header */}
         <header className="lg:hidden flex items-center justify-between p-4 border-b border-gray-800 bg-winter-950/80 backdrop-blur-md sticky top-0 z-40">
-           <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-gray-400">
-             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-           </button>
-           <h1 className="text-sm font-black text-white uppercase tracking-tighter italic">WinterAI</h1>
-           <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
+          <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+          </button>
+          <h1 className="text-sm font-black text-white uppercase tracking-tighter italic">WinterAI</h1>
+          <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
         </header>
 
         {/* Scrollable Chat Area */}
-        <div 
+        <div
           ref={scrollRef}
           className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8 space-y-8"
         >
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center opacity-20">
-               <div className="text-6xl mb-4">❄️</div>
-               <p className="text-sm font-bold uppercase tracking-[0.3em] text-white">Neural Stream Idle</p>
+              <div className="text-6xl mb-4">❄️</div>
+              <p className="text-sm font-bold uppercase tracking-[0.3em] text-white">Neural Stream Idle</p>
             </div>
           ) : (
             messages.map((msg) => (
               <ChatMessage key={msg.id} message={msg} />
             ))
           )}
-          {isLoading && messages.length > 0 && messages[messages.length-1].role === 'user' && (
-             <div className="flex gap-2 items-center text-blue-500/50 text-[10px] font-bold uppercase tracking-widest p-4">
-                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
-                Processing Stream...
-             </div>
+          {isLoading && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
+            <div className="flex gap-2 items-center text-blue-500/50 text-[10px] font-bold uppercase tracking-widest p-4">
+              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+              Processing Stream...
+            </div>
           )}
         </div>
 
@@ -269,7 +269,7 @@ const App: React.FC = () => {
 
       {/* Sidebar Backdrop (Mobile) */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />

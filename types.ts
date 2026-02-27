@@ -17,6 +17,6 @@ export interface Message {
 }
 
 export enum ModelName {
-  FLASH = 'gemini-3-flash-preview',
-  PRO = 'gemini-3-pro-preview'
+  FLASH = 'gemini-2.5-flash',
+  PRO = 'gemini-2.5-flash'
 }

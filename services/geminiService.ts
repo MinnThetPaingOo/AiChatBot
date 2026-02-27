@@ -3,11 +3,11 @@ import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Message, ModelName } from "../types";
 
 export class GeminiChatSession {
-  constructor(private model: ModelName = ModelName.FLASH, private history: Message[] = []) {}
+  constructor(private model: ModelName = ModelName.FLASH, private history: Message[] = []) { }
 
   async *sendMessageStream(text: string, attachments?: { mimeType: string, data: string }[]) {
-    // Fixed: Initialize GoogleGenAI directly with process.env.API_KEY per guidelines
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // Initialize GoogleGenAI with the API key from Vite environment variables
+    const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
 
     const contents = this.history.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
@@ -51,9 +51,11 @@ export class GeminiChatSession {
       }
     } catch (error: any) {
       console.error("Neural Interface Error:", error);
-      // If the error indicates a missing key at the SDK level, we pass a clear message.
-      if (error.message?.includes("API_KEY_INVALID") || error.message?.includes("not found")) {
-        throw new Error("The API key is missing or invalid in this deployment. Please verify your environment configuration.");
+      if (error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError") || error.name === "TypeError") {
+        throw new Error("Network error: Cannot reach Google's API. Check your internet connection or the model name may be invalid.");
+      }
+      if (error.message?.includes("API_KEY_INVALID") || error.message?.includes("API key not valid") || error.message?.includes("must be set")) {
+        throw new Error("The API key is missing or invalid. Please check your VITE_API_KEY in the .env file.");
       }
       throw new Error(error.message || "An unexpected interruption occurred in the neural stream.");
     }
