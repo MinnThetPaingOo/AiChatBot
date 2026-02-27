@@ -9,61 +9,131 @@ interface ChatMessageProps {
 const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const isUser = message.role === 'user';
 
-  return (
-    <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} animate-winter-in`}>
-      <div className={`flex max-w-[95%] sm:max-w-[85%] md:max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'} gap-3 md:gap-4`}>
-        {/* Avatar Plate */}
-        <div className={`flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center font-bold text-xs tracking-tighter shadow-xl ${
-          isUser 
-            ? 'bg-blue-600 text-white' 
-            : 'bg-gray-800 text-blue-400 border border-gray-700'
-        }`}>
-          {isUser ? 'USR' : 'WAI'}
-        </div>
+  const timeStr = new Date(message.timestamp).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
-        {/* Neural Signal Bubble */}
-        <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} min-w-0`}>
-          <div className={`px-4 py-3 md:px-6 md:py-4 rounded-3xl shadow-2xl transition-all ${
-            isUser 
-              ? 'bg-blue-600 text-white rounded-tr-none' 
-              : 'bg-gray-900 text-gray-100 border border-gray-800 rounded-tl-none'
-          }`}>
-            {message.attachments && message.attachments.length > 0 && (
-              <div className="flex flex-wrap gap-3 mb-4">
-                {message.attachments.map((att, idx) => (
-                  <img 
-                    key={idx} 
-                    src={att.url} 
-                    alt="attachment" 
-                    className="max-h-60 md:max-h-96 w-auto rounded-2xl border border-white border-opacity-10 hover:opacity-90 transition-opacity cursor-zoom-in"
-                  />
-                ))}
+  return (
+    <div
+      className="fade-up"
+      style={{
+        display: 'flex',
+        justifyContent: isUser ? 'flex-end' : 'flex-start',
+        width: '100%',
+        gap: 10,
+        alignItems: 'flex-end',
+      }}
+    >
+      {/* AI Avatar */}
+      {!isUser && (
+        <div
+          className="avatar-ai"
+          style={{
+            flexShrink: 0,
+            width: 32,
+            height: 32,
+            borderRadius: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 15,
+            marginBottom: 2,
+          }}
+        >
+          ❄️
+        </div>
+      )}
+
+      {/* Bubble group */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: isUser ? 'flex-end' : 'flex-start',
+          maxWidth: 'min(78%, 620px)',
+          gap: 6,
+        }}
+      >
+        {/* Attachments */}
+        {message.attachments && message.attachments.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {message.attachments.map((att, idx) => (
+              <img
+                key={idx}
+                src={att.url}
+                alt="attachment"
+                style={{
+                  maxHeight: 220,
+                  maxWidth: '100%',
+                  width: 'auto',
+                  borderRadius: 14,
+                  border: '1px solid var(--border)',
+                  objectFit: 'cover',
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Text bubble */}
+        {(message.content || message.isStreaming) && (
+          <div
+            className={isUser ? 'bubble-user' : 'bubble-ai'}
+            style={{ padding: '12px 16px', fontSize: 14, lineHeight: 1.7 }}
+          >
+            {message.isStreaming && !message.content ? (
+              /* Typing indicator */
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '2px 0' }}>
+                <span className="typing-dot"></span>
+                <span className="typing-dot"></span>
+                <span className="typing-dot"></span>
+              </div>
+            ) : (
+              <div className={!isUser ? 'prose' : ''} style={{ color: isUser ? '#fff' : 'var(--text)', wordBreak: 'break-word' }}>
+                <MarkdownRenderer content={message.content} />
               </div>
             )}
-            
-            <div className="text-sm md:text-base leading-relaxed font-medium">
-              <MarkdownRenderer content={message.content} />
-            </div>
-            
-            {message.isStreaming && (
-              <div className="mt-2 flex gap-1 items-center">
-                <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></span>
-                <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-                <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
-              </div>
+
+            {/* Streaming cursor */}
+            {message.isStreaming && message.content && (
+              <span style={{ display: 'inline-block', width: 2, height: '0.85em', background: 'var(--accent-h)', marginLeft: 2, borderRadius: 1, verticalAlign: 'middle', animation: 'pulse-dot 0.8s ease-in-out infinite' }} />
             )}
           </div>
-          
-          <div className="flex items-center gap-2 mt-2 px-1">
-             <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest tabular-nums">
-                {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-             </span>
-             {!isUser && !message.isStreaming && (
-               <span className="text-[10px] text-blue-500 text-opacity-50 font-bold uppercase tracking-widest">Neural Link Verified</span>
-             )}
-          </div>
+        )}
+
+        {/* Timestamp */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingLeft: isUser ? 0 : 4, paddingRight: isUser ? 4 : 0 }}>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500, letterSpacing: '0.04em' }}>{timeStr}</span>
+          {!isUser && !message.isStreaming && message.content && (
+            <span style={{ fontSize: 10, color: 'rgba(99,102,241,0.5)', fontWeight: 600, letterSpacing: '0.05em' }}>✓ WinterAI</span>
+          )}
         </div>
       </div>
+
+      {/* User Avatar */}
+      {isUser && (
+        <div
+          className="avatar-user"
+          style={{
+            flexShrink: 0,
+            width: 32,
+            height: 32,
+            borderRadius: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 12,
+            fontWeight: 700,
+            color: '#fff',
+            fontFamily: 'Outfit, sans-serif',
+            letterSpacing: '-0.02em',
+            marginBottom: 2,
+          }}
+        >
+          YOU
+        </div>
+      )}
     </div>
   );
 };

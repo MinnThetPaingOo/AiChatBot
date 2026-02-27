@@ -5,18 +5,14 @@ import { GeminiChatSession } from './services/geminiService';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
 
-const STORAGE_KEYS = {
-  MESSAGES: 'winterai_free_messages',
-};
+const STORAGE_KEYS = { MESSAGES: 'winterai_messages_v2' };
 
 const App: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.MESSAGES);
       return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
+    } catch { return []; }
   });
 
   const [isKeySelected, setIsKeySelected] = useState<boolean | null>(null);
@@ -24,28 +20,22 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Check for API key on mount
   useEffect(() => {
     const checkKey = async () => {
       if (window.aistudio) {
         const hasKey = await window.aistudio.hasSelectedApiKey();
         setIsKeySelected(hasKey);
       } else {
-        // Fallback if not in AI Studio environment, assume env key is handled
         setIsKeySelected(true);
       }
     };
     checkKey();
   }, []);
 
-  // Persist messages and handle auto-scroll
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messages));
     if (scrollRef.current) {
-      scrollRef.current.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: 'smooth',
-      });
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [messages]);
 
@@ -53,10 +43,9 @@ const App: React.FC = () => {
     if (window.aistudio) {
       try {
         await window.aistudio.openSelectKey();
-        // Guideline: Assume successful selection after calling openSelectKey
         setIsKeySelected(true);
       } catch (err) {
-        console.error("Key selection failed:", err);
+        console.error('Key selection failed:', err);
       }
     }
   };
@@ -102,28 +91,16 @@ const App: React.FC = () => {
       setMessages(prev => prev.map(msg =>
         msg.id === assistantId ? { ...msg, isStreaming: false } : msg
       ));
-
     } catch (error: any) {
-      console.error("Neural Interface Error:", error);
-
-      let errorMsg = error.message || "An unexpected interruption occurred.";
-
-      // Fixed: Handle key-related errors including "Requested entity was not found" per guidelines
-      if (errorMsg.includes("API key must be set") ||
-        errorMsg.includes("ENVIRONMENT_KEY_MISSING") ||
-        errorMsg.includes("API_KEY_INVALID") ||
-        errorMsg.includes("Requested entity was not found")) {
+      let errorMsg = error.message || 'An unexpected interruption occurred.';
+      if (errorMsg.includes('API key must be set') || errorMsg.includes('ENVIRONMENT_KEY_MISSING') ||
+        errorMsg.includes('API_KEY_INVALID') || errorMsg.includes('Requested entity was not found')) {
         setIsKeySelected(false);
-        errorMsg = "Interface disconnected. Please re-link your API key using the button on the main screen.";
+        errorMsg = 'Interface disconnected. Please re-link your API key.';
       }
-
       setMessages(prev => prev.map(msg =>
         msg.id === assistantId
-          ? {
-            ...msg,
-            content: `**Interface Error**: ${errorMsg}`,
-            isStreaming: false
-          }
+          ? { ...msg, content: `**Error:** ${errorMsg}`, isStreaming: false }
           : msg
       ));
     } finally {
@@ -131,152 +108,164 @@ const App: React.FC = () => {
     }
   };
 
-  // While checking key state
+  // Loading state
   if (isKeySelected === null) {
     return (
-      <div className="h-screen w-full bg-winter-950 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      <div style={{ height: '100dvh', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
+        <div className="spinner"></div>
       </div>
     );
   }
 
-  // If no key is selected, show the landing/connect page
+  // No API key — connect screen
   if (!isKeySelected) {
     return (
-      <div className="h-screen w-full bg-winter-950 flex items-center justify-center p-6 overflow-hidden relative">
-        {/* Background Frost Bloom */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/10 blur-[120px] rounded-full"></div>
-
-        <div className="relative z-10 max-w-xl w-full text-center animate-winter-in">
-          <div className="w-24 h-24 bg-gray-900 border border-gray-800 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-2xl transition-transform hover:scale-110">
-            <span className="text-5xl">❄️</span>
+      <div style={{ height: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', background: 'var(--bg)', position: 'relative', overflow: 'hidden' }}>
+        <div className="fade-up" style={{ maxWidth: 420, width: '100%', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+          {/* Logo */}
+          <div style={{ width: 80, height: 80, borderRadius: 24, background: 'linear-gradient(135deg,#6366f1,#4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 28px', boxShadow: '0 8px 32px rgba(99,102,241,0.35)' }}>
+            <span style={{ fontSize: 38 }}>❄️</span>
           </div>
 
-          <h1 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tighter">
-            WinterAI <span className="frost-text">Free</span>
+          <h1 style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 900, fontSize: 'clamp(2rem,8vw,3.2rem)', margin: '0 0 12px', letterSpacing: '-0.03em' }}>
+            Winter<span className="grad-text">AI</span>
           </h1>
-
-          <p className="text-slate-400 text-lg md:text-xl mb-12 leading-relaxed">
-            Initialize your free neural interface to start exploring high-performance intelligence.
-            Select an API key to establish a secure link.
+          <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.65, margin: '0 0 36px' }}>
+            Your intelligent neural interface — fast, free, and powered by Gemini.
           </p>
 
-          <div className="space-y-4">
-            <button
-              onClick={handleConnect}
-              className="w-full py-5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl transition-all active:scale-95 shadow-[0_0_40px_rgba(37,99,235,0.3)] text-lg uppercase tracking-widest"
-            >
-              Connect Free Interface
-            </button>
-            <p className="text-[10px] text-gray-600 font-bold uppercase tracking-[0.2em]">
-              Powered by Gemini 3 Flash • Secure Session Environment
-            </p>
-          </div>
+          <button
+            onClick={handleConnect}
+            style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg,#6366f1,#4f46e5)', color: '#fff', fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: 16, border: 'none', borderRadius: 14, cursor: 'pointer', letterSpacing: '0.02em', boxShadow: '0 6px 28px rgba(99,102,241,0.4)', transition: 'transform 0.15s, box-shadow 0.15s' }}
+            onMouseEnter={e => { (e.target as HTMLButtonElement).style.transform = 'translateY(-2px)'; }}
+            onMouseLeave={e => { (e.target as HTMLButtonElement).style.transform = 'none'; }}
+          >
+            Connect API Key
+          </button>
 
-          <div className="mt-16 pt-8 border-t border-gray-800/50 flex justify-center gap-8 opacity-40">
-            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Research Logic</div>
-            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Neural Streams</div>
-            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Arctic Core</div>
-          </div>
+          <p style={{ marginTop: 20, fontSize: 11, color: 'rgba(107,114,128,0.6)', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>
+            Powered by Gemini Flash · End-to-end secure
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-winter-950">
-      {/* Sidebar - Desktop & Mobile */}
-      <aside className={`
-        fixed lg:static inset-y-0 left-0 z-50 w-72 glass-card border-r border-gray-800
-        transition-transform duration-300 ease-in-out
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-        <div className="flex flex-col h-full p-6">
-          <div className="flex items-center gap-4 mb-12">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <span className="text-white font-black text-xl">W</span>
+    <div style={{ display: 'flex', height: '100dvh', width: '100%', overflow: 'hidden', background: 'var(--bg)', position: 'relative' }}>
+
+      {/* Sidebar overlay (mobile) */}
+      {isSidebarOpen && (
+        <div className="overlay" onClick={() => setIsSidebarOpen(false)} />
+      )}
+
+      {/* ── Sidebar ── */}
+      <aside className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
+        <div style={{ padding: '22px 16px 16px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+
+          {/* Brand */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28, paddingLeft: 4 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#6366f1,#4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(99,102,241,0.35)', flexShrink: 0 }}>
+              <span style={{ fontSize: 18 }}>❄️</span>
             </div>
             <div>
-              <h2 className="text-xl font-black tracking-tight frost-text uppercase italic">Winter</h2>
-              <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Free Interface</p>
+              <div style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: 17, letterSpacing: '-0.02em' }}>
+                Winter<span className="grad-text">AI</span>
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 1 }}>Free Interface</div>
             </div>
           </div>
 
-          <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar">
-            <p className="text-[10px] text-gray-600 font-black uppercase tracking-widest px-2 mb-4">Neural Buffer</p>
-            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-500/10 text-blue-100 text-sm font-bold border border-blue-500/20 shadow-inner">
-              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-              Live Session
-            </button>
+          {/* New Chat */}
+          <div className="nav-item active" style={{ marginBottom: 8 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            Current Session
+            <span style={{ marginLeft: 'auto', width: 7, height: 7, borderRadius: '50%', background: '#6366f1', boxShadow: '0 0 6px #6366f1' }}></span>
           </div>
 
-          <div className="mt-auto space-y-4 pt-6">
-            <div className="p-4 bg-gray-900/60 rounded-2xl border border-gray-800/50">
-              <p className="text-[10px] text-gray-500 font-black uppercase mb-2 tracking-widest">Core Engine</p>
-              <p className="text-xs text-blue-400 font-black flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                Arctic Flash 3.0
-              </p>
-            </div>
+          {/* Message count */}
+          <div style={{ flex: 1 }} />
 
-            <button
-              onClick={() => { if (confirm('Clear neural history?')) { setMessages([]); setIsSidebarOpen(false); } }}
-              className="w-full py-4 text-[10px] font-black text-gray-500 hover:text-red-400 transition-colors uppercase tracking-widest border border-gray-800/50 rounded-xl"
-            >
-              Clear Buffer
-            </button>
+          {/* Model badge */}
+          <div style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 14px', marginBottom: 10 }}>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Active Model</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: '#a5b4fc' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#6366f1', boxShadow: '0 0 6px #6366f1', display: 'inline-block' }}></span>
+              Gemini Flash
+            </div>
+          </div>
+
+          {/* Clear */}
+          <div
+            className="clear-btn"
+            onClick={() => { if (confirm('Clear all messages?')) { setMessages([]); setIsSidebarOpen(false); } }}
+          >
+            🗑 Clear Conversation
           </div>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col relative h-full">
-        {/* Mobile Header */}
-        <header className="lg:hidden flex items-center justify-between p-4 border-b border-gray-800 bg-winter-950/80 backdrop-blur-md sticky top-0 z-40">
-          <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-gray-400">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+      {/* ── Main ── */}
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+
+        {/* Mobile top bar */}
+        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid var(--border)', background: 'rgba(7,8,15,0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', position: 'sticky', top: 0, zIndex: 30 }}
+          className="md-header"
+        >
+          {/* Menu button (mobile only) */}
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            style={{ padding: 8, background: 'none', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            className="menu-btn"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
           </button>
-          <h1 className="text-sm font-black text-white uppercase tracking-tighter italic">WinterAI</h1>
-          <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
+
+          <div style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: 16, letterSpacing: '-0.02em' }}>
+            Winter<span className="grad-text">AI</span>
+          </div>
+
+          {/* Status dot */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#a5b4fc', fontWeight: 600 }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#6366f1', boxShadow: '0 0 6px #6366f1', display: 'inline-block' }}></span>
+            Online
+          </div>
         </header>
 
-        {/* Scrollable Chat Area */}
+        {/* Messages area */}
         <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8 space-y-8"
+          className="scrollbar"
+          style={{ flex: 1, overflowY: 'auto', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 20 }}
         >
           {messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center opacity-20">
-              <div className="text-6xl mb-4">❄️</div>
-              <p className="text-sm font-bold uppercase tracking-[0.3em] text-white">Neural Stream Idle</p>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', opacity: 0.35, gap: 16 }}>
+              <div style={{ fontSize: 56 }}>❄️</div>
+              <div>
+                <div style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: 22, letterSpacing: '-0.02em', marginBottom: 6 }}>Ask WinterAI anything</div>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Powered by Gemini Flash · Free · Fast</div>
+              </div>
             </div>
           ) : (
-            messages.map((msg) => (
-              <ChatMessage key={msg.id} message={msg} />
-            ))
-          )}
-          {isLoading && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
-            <div className="flex gap-2 items-center text-blue-500/50 text-[10px] font-bold uppercase tracking-widest p-4">
-              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
-              Processing Stream...
-            </div>
+            messages.map(msg => <ChatMessage key={msg.id} message={msg} />)
           )}
         </div>
 
-        {/* Input Area */}
+        {/* Input */}
         <ChatInput onSend={handleSend} disabled={isLoading} />
       </main>
 
-      {/* Sidebar Backdrop (Mobile) */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
+      <style>{`
+        @media (min-width: 769px) {
+          .menu-btn { display: none !important; }
+        }
+      `}</style>
     </div>
   );
 };
 
-// Fixed: Added missing default export to resolve "Module has no default export" error in index.tsx
 export default App;
