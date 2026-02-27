@@ -135,13 +135,14 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled }) => {
             onChange={e => setText(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={disabled}
-            placeholder="Ask anything… (Enter to send, Shift+Enter for new line)"
+            placeholder="Ask anything… "
             style={{
               flex: 1,
               background: 'transparent',
               border: 'none',
               outline: 'none',
               resize: 'none',
+              overflow: 'hidden',
               color: 'var(--text)',
               fontSize: 14,
               lineHeight: 1.6,

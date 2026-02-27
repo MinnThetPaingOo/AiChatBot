@@ -144,7 +144,9 @@ const App: React.FC = () => {
           </button>
 
           <p style={{ marginTop: 20, fontSize: 11, color: 'rgba(107,114,128,0.6)', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>
-            Powered by Gemini Flash · End-to-end secure
+            Powered by Winer async function name(params:type) {
+
+            } · End-to-end secure
           </p>
         </div>
       </div>
@@ -172,7 +174,7 @@ const App: React.FC = () => {
               <div style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: 17, letterSpacing: '-0.02em' }}>
                 Winter<span className="grad-text">AI</span>
               </div>
-              <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 1 }}>Free Interface</div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 1 }}>Free to Ask</div>
             </div>
           </div>
 
@@ -193,7 +195,7 @@ const App: React.FC = () => {
             <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Active Model</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: '#a5b4fc' }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#6366f1', boxShadow: '0 0 6px #6366f1', display: 'inline-block' }}></span>
-              Gemini Flash
+              Winter AI Model
             </div>
           </div>
 
@@ -247,7 +249,7 @@ const App: React.FC = () => {
               <div style={{ fontSize: 56 }}>❄️</div>
               <div>
                 <div style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: 22, letterSpacing: '-0.02em', marginBottom: 6 }}>Ask WinterAI anything</div>
-                <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Powered by Gemini Flash · Free · Fast</div>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Powered by Winter AI · Free · Fast</div>
               </div>
             </div>
           ) : (
