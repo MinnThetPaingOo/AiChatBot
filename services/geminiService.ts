@@ -1,63 +1,101 @@
 
-import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Message, ModelName } from "../types";
 
+const SYSTEM_INSTRUCTION =
+  "You are WinterAI, a helpful, precise, and efficient free assistant. Keep responses clear, professional, and use Markdown for all formatting.";
+
 export class GeminiChatSession {
-  constructor(private model: ModelName = ModelName.FLASH, private history: Message[] = []) { }
+  constructor(
+    private model: ModelName = ModelName.FLASH,
+    private history: Message[] = []
+  ) { }
 
-  async *sendMessageStream(text: string, attachments?: { mimeType: string, data: string }[]) {
-    // Initialize GoogleGenAI with the API key from Vite environment variables
-    const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
-
-    const contents = this.history.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'model',
+  async *sendMessageStream(
+    text: string,
+    attachments?: { mimeType: string; data: string }[]
+  ) {
+    // Build the contents array (conversation history + new message)
+    const contents = this.history.map((msg) => ({
+      role: msg.role === "user" ? "user" : "model",
       parts: [
         { text: msg.content },
-        ...(msg.attachments?.map(att => ({
-          inlineData: {
-            mimeType: att.mimeType,
-            data: att.data
-          }
-        })) || [])
-      ]
+        ...(msg.attachments?.map((att) => ({
+          inlineData: { mimeType: att.mimeType, data: att.data },
+        })) || []),
+      ],
     }));
 
     contents.push({
-      role: 'user',
+      role: "user",
       parts: [
         { text },
-        ...(attachments?.map(att => ({
-          inlineData: {
-            mimeType: att.mimeType,
-            data: att.data
-          }
-        })) || [])
-      ]
+        ...(attachments?.map((att) => ({
+          inlineData: { mimeType: att.mimeType, data: att.data },
+        })) || []),
+      ],
     });
 
     try {
-      const result = await ai.models.generateContentStream({
-        model: this.model,
-        contents,
-        config: {
-          systemInstruction: "You are WinterAI, a helpful, precise, and efficient free assistant. Keep responses clear, professional, and use Markdown for all formatting.",
-        },
+      // ✅ Call our own backend proxy (/api/chat) instead of Gemini directly.
+      // This ensures the request goes from Vercel's US server → Gemini,
+      // bypassing the Myanmar IP geo-restriction.
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: this.model,
+          contents,
+          systemInstruction: SYSTEM_INSTRUCTION,
+        }),
       });
 
-      for await (const chunk of result) {
-        // Fixed: Directly access .text property as per guidelines (it's a getter, not a method)
-        const c = chunk as GenerateContentResponse;
-        yield c.text || "";
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        throw new Error(errorData.error || `Server error: ${response.status}`);
+      }
+
+      // Parse the Server-Sent Events (SSE) stream from the proxy
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6).trim();
+            if (data === "[DONE]") return;
+            try {
+              const parsed = JSON.parse(data);
+              const textChunk =
+                parsed?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+              if (textChunk) yield textChunk;
+            } catch {
+              // Skip malformed SSE lines
+            }
+          }
+        }
       }
     } catch (error: any) {
       console.error("Neural Interface Error:", error);
-      if (error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError") || error.name === "TypeError") {
-        throw new Error("Network error: Cannot reach Google's API. Check your internet connection or the model name may be invalid.");
+      if (
+        error.message?.includes("Failed to fetch") ||
+        error.message?.includes("NetworkError") ||
+        error.name === "TypeError"
+      ) {
+        throw new Error(
+          "Network error: Cannot reach the server. Check your internet connection."
+        );
       }
-      if (error.message?.includes("API_KEY_INVALID") || error.message?.includes("API key not valid") || error.message?.includes("must be set")) {
-        throw new Error("The API key is missing or invalid. Please check your VITE_API_KEY in the .env file.");
-      }
-      throw new Error(error.message || "An unexpected interruption occurred in the neural stream.");
+      throw new Error(
+        error.message || "An unexpected interruption occurred in the neural stream."
+      );
     }
   }
 }
